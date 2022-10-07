@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
+import '../src/App.css'
 
 const App = () => {
   const [socket, setSocket] = useState(null);
@@ -9,6 +10,11 @@ const App = () => {
   const [log, setLog] = useState([])
   const [startAllowed, setStartAllowed] = useState(false)
   const [started, setStarted] = useState(false)
+  const [productsCount, setProductsCount] = useState(0)
+  const [duplicates, setDuplicates] = useState(0)
+  const [categoriesChecked, setCategoriesChecked] = useState(0)
+  const [productsFound, setProductsFound] = useState(0)
+  const [categoriesFound, setCategoriesFound] = useState(0)
 
   useEffect(() => {
     setSocket(io(`http://localhost:${back_end_port}`));
@@ -17,11 +23,14 @@ const App = () => {
   useEffect(() => {
     if (!socket) return;
     socket.on("data", (response) => {
-      if (response.success) {
-        if (response.start_allowed) setStartAllowed(true)
-        setLog(log => [`${msToTime(new Date())} message: ${response.message}`, ...log]);
-
-      }
+      if (!response.success) return
+      if (response.start_allowed) setStartAllowed(true)
+      if (response.message) setLog(log => [`${msToTime(new Date())} message: ${response.message}`, ...log]);
+      if (response.productsFound) setProductsFound(Number(response.productsFound.replace('(', '').replace(')', '')))
+      if (response.categoriesChecked) setCategoriesChecked(response.categoriesChecked)
+      if (response.productCount) setProductsCount(response.productCount)
+      if (response.categoriesFound) setCategoriesFound(response.categoriesFound)
+      if (response.duplicates) setDuplicates(response.duplicates)
     });
     socket.on("connect", () => {
       setSocketConnected(socket.connected);
@@ -31,6 +40,8 @@ const App = () => {
     socket.on("disconnect", () => {
       setSocketConnected(socket.connected);
       setLog(log => [`${msToTime(new Date())} message: Disconnected from server`, ...log]);
+      setStarted(false)
+      setStartAllowed(false)
     });
   }, [socket]);
 
@@ -43,12 +54,6 @@ const App = () => {
   function msToTime(currentdate) {
     const datetime =
       "@ " +
-      // currentdate.getDate() +
-      // "/" +
-      // (currentdate.getMonth() + 1) +
-      // "/" +
-      // currentdate.getFullYear() +
-      // " @ " +
       currentdate.getHours() +
       ":" +
       currentdate.getMinutes() +
@@ -76,23 +81,23 @@ const App = () => {
     else socket.emit("stop", {});
   }
   return (
-    <div style={{ padding: 30 }} className="app flex-col">
-      <div>
-        <b>Connection with server status:</b>{" "}
-        {socketConnected ? "Connected" : "Disconnected"}
-        <input
-          type="button"
-          style={{ marginTop: 10, marginLeft: 10 }}
-          value={socketConnected ? "Disconnect" : "Connect"}
-          onClick={handleSocketConnection}
-        />
+    <div style={{ padding: 30, height: '100vh',  
+    // backgroundColor: '#023d21',
+      color: '#1bad71' }} className="app flex-col">
+      <div className="flex">
+        <b>Connection with server status: </b>{" "}
+        {socketConnected ? " Connected" : " Disconnected"}
+        <div className="btn" style={{ marginLeft: 10 }} onClick={handleSocketConnection}>{socketConnected ? "Disconnect" : "Connect"}</div>
       </div>
-      <div style={{ marginTop: 20 }} className="flex flex-col">
+      <div style={{ marginTop: 20 }} className="flex">
         <input style={{width: 317}} ref={inputRef} placeholder="url" />
-        <button disabled={!socketConnected || started} style={{ marginLeft: 10 }} onClick={sendUrl}>
+        <div  className='btn' disabled={!socketConnected || started} style={{ marginLeft: 10 }} onClick={sendUrl}>
           Send url
-        </button>
-        {startAllowed && <button onClick={handleClick} style={{ marginLeft: 10 }}>{!started ? 'Start' : 'Stop'}</button>}
+        </div>
+        {startAllowed && <div className="btn" onClick={handleClick} style={{ marginLeft: 10 }}>{!started ? 'Start' : 'Stop'}</div>}
+        <div className="table" style={{marginLeft: 20}}>Products: {productsCount} / {productsFound}</div>
+        <div className="table">Categories Checked: {categoriesChecked} / {categoriesFound}</div>
+        <div className="table">Duplicates: {duplicates}</div>
       </div>
       <div style={{marginTop: 30}}>
         {mappedLog}
