@@ -84,7 +84,10 @@ const App = () => {
       socket.emit("start", {})
       setReady(false)
     }
-    else socket.emit("stop", {});
+    else {
+      socket.emit("stop", {})
+      setStartAllowed(false)
+    }
   }
   return (
     <div style={{ padding: 30, height: '100vh', color: '#1bad71' }} className="app flex-col">
