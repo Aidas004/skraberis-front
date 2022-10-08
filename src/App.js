@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import io from "socket.io-client";
 import '../src/App.css'
+import { CSVLink } from "react-csv";
 
 const App = () => {
   const [socket, setSocket] = useState(null);
@@ -11,10 +12,12 @@ const App = () => {
   const [startAllowed, setStartAllowed] = useState(false)
   const [started, setStarted] = useState(false)
   const [productsCount, setProductsCount] = useState(0)
-  const [duplicates, setDuplicates] = useState(0)
   const [categoriesChecked, setCategoriesChecked] = useState(0)
   const [productsFound, setProductsFound] = useState(0)
   const [categoriesFound, setCategoriesFound] = useState(0)
+  const [customName, setCustomName] = useState('')
+  const [data, setData] = useState([])
+  const [ready, setReady] = useState(false)
 
   useEffect(() => {
     setSocket(io(`http://localhost:${back_end_port}`));
@@ -30,8 +33,15 @@ const App = () => {
       if (response.categoriesChecked) setCategoriesChecked(response.categoriesChecked)
       if (response.productCount) setProductsCount(response.productCount)
       if (response.categoriesFound) setCategoriesFound(response.categoriesFound)
-      // if (response.duplicates) setDuplicates(response.duplicates)
     });
+    socket.on('getDownloadLink', ({data}) => {
+      setData(data)
+      const customName = inputRef.current.value.split('c/')[1].replace('/', '')
+      setCustomName(customName)
+      setStartAllowed(false)
+      setStarted(false)
+      setReady(true)
+    })
     socket.on("connect", () => {
       setSocketConnected(socket.connected);
       setLog(log => [`${msToTime(new Date())} message: Connected to server successfully...`, ...log])
@@ -66,10 +76,14 @@ const App = () => {
   };
   const mappedLog = log.map((x, i) => {
     if (i < 20)  return <div style={{paddingTop: 5, paddingBottom: 5, borderTop: '1px dotted grey'}}>{x}</div>
+    else return null
   })
   const handleClick = () => {
     setStarted(!started)
-    if (!started) socket.emit("start", {});
+    if (!started) {
+      socket.emit("start", {})
+      setReady(false)
+    }
     else socket.emit("stop", {});
   }
   return (
@@ -81,10 +95,9 @@ const App = () => {
       </div>
       <div style={{ marginTop: 20 }} className="flex">
         <input style={{width: 317}} ref={inputRef} placeholder="url" />
-        <div  className='btn' disabled={!socketConnected || started} style={{ marginLeft: 10 }} onClick={sendUrl}>
-          Send url
-        </div>
+        {!startAllowed && <div  className='btn' disabled={!socketConnected || started} style={{ marginLeft: 10 }} onClick={sendUrl}>Send url</div>}
         {startAllowed && <div className="btn" onClick={handleClick} style={{ marginLeft: 10 }}>{!started ? 'Start' : 'Stop'}</div>}
+        {ready && <CSVLink style={{marginLeft: 20}} className={"btn"} filename={`${customName}.csv`} data={data}>Download</CSVLink>}
         <div className="table" style={{marginLeft: 20}}>Products: {productsCount} / {productsFound}</div>
         <div className="table">Categories Checked: {categoriesChecked} / {categoriesFound}</div>
         {/* <div className="table">Duplicates: {duplicates}</div> */}
