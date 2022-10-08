@@ -30,16 +30,16 @@ const App = () => {
       if (response.categoriesChecked) setCategoriesChecked(response.categoriesChecked)
       if (response.productCount) setProductsCount(response.productCount)
       if (response.categoriesFound) setCategoriesFound(response.categoriesFound)
-      if (response.duplicates) setDuplicates(response.duplicates)
+      // if (response.duplicates) setDuplicates(response.duplicates)
     });
     socket.on("connect", () => {
       setSocketConnected(socket.connected);
-      setLog(log => [`${msToTime(new Date())} message: Connected to server successfully...`, ...log]);
+      setLog(log => [`${msToTime(new Date())} message: Connected to server successfully...`, ...log])
 
     });
     socket.on("disconnect", () => {
       setSocketConnected(socket.connected);
-      setLog(log => [`${msToTime(new Date())} message: Disconnected from server`, ...log]);
+      setLog(log => [`${msToTime(new Date())} message: Disconnected from server`, ...log])
       setStarted(false)
       setStartAllowed(false)
     });
@@ -47,33 +47,25 @@ const App = () => {
 
   const handleSocketConnection = () => {
     if (socketConnected) socket.disconnect();
-    else {
-      socket.connect();
-    }
-  };
-  function msToTime(currentdate) {
-    const datetime =
+    else socket.connect();
+  }
+  function msToTime(timeNow) {
+    const time =
       "@ " +
-      currentdate.getHours() +
+      timeNow.getHours() +
       ":" +
-      currentdate.getMinutes() +
+      timeNow.getMinutes() +
       ":" +
-      currentdate.getSeconds();
-
-      return datetime
+      timeNow.getSeconds()
+      return time
   }
 
   const sendUrl = () => {
-    if (inputRef.current.value !== "") {
-      return socket.emit("url", { url: inputRef.current.value });
-    } else {
-      setLog(log => [`${msToTime(new Date())} message: Url cannot be empty`, ...log]);
-    }
+    if (inputRef.current.value !== "") return socket.emit("url", { url: inputRef.current.value })
+    else setLog(log => [`${msToTime(new Date())} message: Url cannot be empty`, ...log])
   };
   const mappedLog = log.map((x, i) => {
-    if (i < 20) {
-      return <div style={{paddingTop: 5, paddingBottom: 5, borderTop: '1px dotted grey'}}>{x}</div>;
-    }
+    if (i < 20)  return <div style={{paddingTop: 5, paddingBottom: 5, borderTop: '1px dotted grey'}}>{x}</div>
   })
   const handleClick = () => {
     setStarted(!started)
@@ -81,9 +73,7 @@ const App = () => {
     else socket.emit("stop", {});
   }
   return (
-    <div style={{ padding: 30, height: '100vh',  
-    // backgroundColor: '#023d21',
-      color: '#1bad71' }} className="app flex-col">
+    <div style={{ padding: 30, height: '100vh', color: '#1bad71' }} className="app flex-col">
       <div className="flex">
         <b>Connection with server status: </b>{" "}
         {socketConnected ? " Connected" : " Disconnected"}
@@ -97,7 +87,7 @@ const App = () => {
         {startAllowed && <div className="btn" onClick={handleClick} style={{ marginLeft: 10 }}>{!started ? 'Start' : 'Stop'}</div>}
         <div className="table" style={{marginLeft: 20}}>Products: {productsCount} / {productsFound}</div>
         <div className="table">Categories Checked: {categoriesChecked} / {categoriesFound}</div>
-        <div className="table">Duplicates: {duplicates}</div>
+        {/* <div className="table">Duplicates: {duplicates}</div> */}
       </div>
       <div style={{marginTop: 30}}>
         {mappedLog}
