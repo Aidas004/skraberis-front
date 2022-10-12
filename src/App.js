@@ -20,7 +20,7 @@ const App = () => {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    setSocket(io(`http://127.0.0.1:${back_end_port}`));
+    setSocket(io(`http://10.0.4.67:${back_end_port}`));
   }, []);
 
   useEffect(() => {
