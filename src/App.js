@@ -7,7 +7,6 @@ const App = () => {
   const [socket, setSocket] = useState(null);
   const [socketConnected, setSocketConnected] = useState(false);
   const inputRef = useRef(null);
-  const back_end_port = 1337;
   const [log, setLog] = useState([])
   const [startAllowed, setStartAllowed] = useState(false)
   const [started, setStarted] = useState(false)
@@ -20,7 +19,8 @@ const App = () => {
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
-    setSocket(io(`http://${process.env.REACT_APP_BACKEND_IP_PLUS_PORT}`));
+    // setSocket(io(`http://${process.env.REACT_APP_BACKEND_IP_PLUS_PORT}`));
+    setSocket(io(`http://${process.env.REACT_APP_BACKEND_IP_PLUS_PORT_DEV}`));
   }, []);
 
   useEffect(() => {
@@ -35,9 +35,8 @@ const App = () => {
       if (response.categoriesFound) setCategoriesFound(response.categoriesFound)
     });
     socket.on('getDownloadLink', ({data}) => {
+      console.log('data got')
       setData(data)
-      const customName = inputRef.current.value.split('c/')[1].replace('/', '')
-      setCustomName(customName)
       setStartAllowed(false)
       setStarted(false)
       setReady(true)
